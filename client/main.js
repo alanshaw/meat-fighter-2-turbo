@@ -8,12 +8,19 @@ function State () {
   this.vy = 0
 }
 
+State.prototype.equals = function (state) {
+  return this.x == state.x &&
+         this.y == state.y &&
+         this.vx == state.vx &&
+         this.vy == state.vy
+}
+
 function Player (opts) {
   opts = opts || {}
   this.opts = opts
   this.id = opts.id
   this._frame = null
-  this._state = new State()
+  this._state = opts.state || new State()
   this._pressed = {}
 
   if (opts.local) {
@@ -110,6 +117,15 @@ Player.prototype.setState = function (state) {
   this._state = state
 }
 
+Player.prototype.getState = function () {
+  var state = new State
+  state.x = this._state.x
+  state.y = this._state.y
+  state.vx = this._state.vx
+  state.vy = this._state.vy
+  return state
+}
+
 Player.prototype.destroy = function () {
   this._frame.parentNode.removeChild(this._frame)
   this._frame = null
@@ -152,6 +168,7 @@ document.getElementById('gravatar').addEventListener('keyup', function () {
   var avatar = getAvatar()
   localStorage.setItem('email', document.getElementById('gravatar').value)
   localStorage.setItem('avatar', avatar)
+  socket.emit('avatar', avatar)
   player.setAvatar(avatar)
 })
 
@@ -165,8 +182,16 @@ function loopy (timestamp) {
   if (!loopy.last) loopy.last = timestamp
   var elapsed = timestamp - loopy.last
 
+  var lastState = player.getState()
+
   player.update(elapsed)
   player.redraw()
+
+  var state = player.getState()
+
+  if (!state.equals(lastState)) {
+    socket.emit('state', state)
+  }
 
   Object.keys(players).forEach(function (id) {
     players[id].update(elapsed)
@@ -182,14 +207,15 @@ requestAnimationFrame(loopy)
 var socket = io()
 
 socket.on('id', function (id) {
-  console.log('Got id')
+  console.log('Got id', id)
   player.setId(id)
+  console.log(player)
 })
 
-socket.on('join', function (id) {
-  console.log('A new challenger appears', id)
-  players[id] = new Player({id: id})
-  players[id].spawn(world)
+socket.on('join', function (data) {
+  console.log('A new challenger appears', data)
+  players[data.id] = new Player(data)
+  players[data.id].spawn(world)
 })
 
 socket.on('state', function (data) {
@@ -210,3 +236,5 @@ socket.on('leave', function (id) {
   players[id].destroy()
   delete players[id]
 })
+
+socket.emit('avatar', getAvatar())
