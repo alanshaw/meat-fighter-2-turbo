@@ -1,161 +1,10 @@
-var GRAVITY = -0.002
-var FRICTION = -0.01
-
-function State () {
-  this.x = 0
-  this.y = 50
-  this.vx = 0
-  this.vy = 0
-}
-
-State.prototype.equals = function (state) {
-  return this.x == state.x &&
-         this.y == state.y &&
-         this.vx == state.vx &&
-         this.vy == state.vy
-}
-
-function Player (opts) {
-  opts = opts || {}
-  this.opts = opts
-  this.id = opts.id
-  this._frame = null
-  this._state = opts.state || new State()
-  this._pressed = {}
-
-  if (opts.local) {
-    window.addEventListener("keydown", this._onKeydown.bind(this))
-    window.addEventListener("keyup", this._onKeyup.bind(this))
-  }
-}
-
-Player.prototype.spawn = function (world) {
-  var frame = document.createElement('div')
-  frame.className = 'player'
-
-  var inner = document.createElement('div')
-  frame.appendChild(inner)
-
-  var head = document.createElement('div')
-  head.className = 'head'
-  head.style.backgroundImage = 'url(' + this.opts.avatar + ')'
-
-  inner.appendChild(head)
-  world.appendChild(frame)
-
-  this._frame = frame
-  this._head = head
-}
-
-Player.prototype.update = function (elapsed) {
-  Object.keys(this._pressed).forEach(function (keyCode) {
-    if (KeyStateMutator[keyCode]) {
-      this._state = KeyStateMutator[keyCode](this._state)
-    }
-  }, this)
-
-  var state = this._state
-  state.x += state.vx * elapsed
-
-  if (state.vx >= 0 && state.vx + (FRICTION * elapsed) < 0) {
-    state.vx = 0
-  } else if (state.vx < 0 && state.vx + (FRICTION * elapsed) >= 0) {
-    state.vx = 0
-  } else {
-    if (state.vx < 0) {
-      state.vx -= FRICTION * elapsed 
-    } else {
-      state.vx += FRICTION * elapsed 
-    }
-  }
-
-  state.y += state.vy * elapsed
-  state.vy += GRAVITY * elapsed
-
-  if (state.y <= 0) {
-    state.y = 0
-    state.vy = 0
-  }
-
-  if (state.x <= 0) {
-    state.x = 0
-    state.vx = 0
-  }
-
-  if (state.x >= 590) {
-    state.x = 590
-    state.vx = 0
-  }
-}
-
-Player.prototype.redraw = function () {
-  var state = this._state
-  this._frame.style.transform = 'translate(' + state.x + 'px,' + state.y + 'px)'
-}
-
-Player.prototype._onKeydown = function (e) {
-  console.log('DOWN', e.keyCode)
-  this._pressed[e.keyCode] = true
-}
-
-Player.prototype._onKeyup = function (e) {
-  console.log('UP', e.keyCode)
-  delete this._pressed[e.keyCode]
-}
-
-Player.prototype.setAvatar = function (avatar) {
-  this.opts.avatar = avatar
-  this._head.style.backgroundImage = 'url(' + avatar + ')'
-}
-
-Player.prototype.setId = function (id) {
-  this.id = id
-  this.opts.id = id
-}
-
-Player.prototype.setState = function (state) {
-  this._state = state
-}
-
-Player.prototype.getState = function () {
-  var state = new State
-  state.x = this._state.x
-  state.y = this._state.y
-  state.vx = this._state.vx
-  state.vy = this._state.vy
-  return state
-}
-
-Player.prototype.destroy = function () {
-  this._frame.parentNode.removeChild(this._frame)
-  this._frame = null
-  this._head = null
-}
-
-var KeyStateMutator = {
-  '37': function (state) {
-    if (state.vx > -0.75) {
-      state.vx = -0.75
-    }
-    return state
-  },
-  '38': function (state) {
-    if (state.y == 0) {
-      state.vy = 1
-    }
-    return state
-  },
-  '39': function (state) {
-    if (state.vx < 0.75) {
-      state.vx = 0.75
-    }
-    return state
-  }
-}
+var md5 = require('md5')
+var State = require('./State')
+var Player = require('./Player')
 
 function getAvatar () {
   var email = document.getElementById('gravatar').value
-  return 'https://en.gravatar.com/avatar/' + md5(email)
+  return 'https://en.gravatar.com/avatar/' + md5.digest_s(email)
 }
 
 var player = new Player({
@@ -163,6 +12,24 @@ var player = new Player({
   local: true
 })
 var players = {}
+
+// create a list of ALL game players with optional excluded player
+function listPlayers (excludedPlayer) {
+  var ids = Object.keys(players)
+
+  if (excludedPlayer == player) {
+    return ids.map(function (id) {
+      return players[id]
+    })
+  }
+
+  return [player].concat(ids.reduce(function (list, id) {
+    if (id != excludedPlayer.id) {
+      list.push()
+    }
+    return list
+  }, []))
+}
 
 document.getElementById('gravatar').addEventListener('keyup', function () {
   var avatar = getAvatar()
@@ -184,7 +51,7 @@ function loopy (timestamp) {
 
   var lastState = player.getState()
 
-  player.update(elapsed)
+  player.update(elapsed, listPlayers(player))
   player.redraw()
 
   var state = player.getState()
@@ -193,9 +60,9 @@ function loopy (timestamp) {
     socket.emit('state', state)
   }
 
-  Object.keys(players).forEach(function (id) {
-    players[id].update(elapsed)
-    players[id].redraw()
+  listPlayers(player).forEach(function (p) {
+    p.update(elapsed, listPlayers(p))
+    p.redraw()
   })
 
   loopy.last = timestamp
@@ -221,7 +88,7 @@ socket.on('join', function (data) {
 socket.on('state', function (data) {
   console.log('Got updated state', data)
   if (!players[data.id]) return console.warn('Unknown player', data.id)
-  players[data.id].setState(data.state)
+  players[data.id].setState(new State(data.state))
 })
 
 socket.on('avatar', function (data) {

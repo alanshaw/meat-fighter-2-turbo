@@ -8,9 +8,9 @@ var io = require('socket.io')(server)
 var players = {}
 
 io.on('connection', function (socket) {
-  console.log('A new challenger appears')
-
   var id = Date.now()
+
+  console.log('A new challenger appears', id)
 
   socket.emit('id', id)
 
@@ -43,7 +43,7 @@ io.on('connection', function (socket) {
   })
 
   socket.on('disconnect', function () {
-    console.log('Challenger disappears' + id)
+    console.log('Challenger disappears', id)
     delete players[id]
     socket.broadcast.emit('leave', id)
   })
