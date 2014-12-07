@@ -5,9 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node index",
+    "start-meteor": "cd meteor && meteor reset && meteor",
     "test": "echo \"Error: no test specified\" && exit 1",
     "browserify": "browserify client/main.js -o client/bundle.js",
-    "watchify": "watchify client/main.js -o client/bundle.js -v"
+    "browserify-meteor": "browserify client/meteor/main.js -o meteor/client/bundle.js",
+    "watchify": "watchify client/main.js -o client/bundle.js -v",
+    "watchify-meteor": "watchify client/meteor/main.js -o meteor/client/bundle.js"
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,40 @@
+#world {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -240px 0 0 -320px;
+  width: 640px;
+  height: 480px;
+  border: 5px solid red;
+  transform: rotateX(180deg);
+}
+#world::after {
+  content: "";
+  background: transparent url(bg-airforce.jpg) no-repeat scroll center bottom;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotateX(180deg);
+}
+.player {
+  position: absolute;
+  width: 50px;
+  height: 100px;
+  background: rgba(0, 0, 0, 0.2);
+  transform: rotateX(180deg) translate(50px, 100px);
+  z-index: 1;
+}
+.player > div {
+  width: 100%;
+  height: 100%;
+  transform: rotateX(180deg);
+}
+.player .head {
+  width: 50px;
+  height: 50px;
+  background: transparent none no-repeat scroll center center;
+  background-size: 100% 100%;
+  border-radius: 50%;
+}
