@@ -32,8 +32,6 @@ function Game (transport) {
   transport.on('state', this._onState.bind(this))
   transport.on('avatar', this._onAvatar.bind(this))
   transport.on('leave', this._onLeave.bind(this))
-
-  transport.emit('avatar', Game.getAvatar())
 }
 
 Game.getAvatar = function () {
@@ -71,7 +69,7 @@ Game.prototype._loopy = function (timestamp) {
   var state = this._player.getState()
 
   if (!state.equals(lastState)) {
-    this._transport.emit('state', state)
+    this._transport.emit('state', {id: this._player.id, state: state})
   }
 
   this._listPlayers(this._player).forEach(function (p) {
@@ -86,7 +84,7 @@ Game.prototype._loopy = function (timestamp) {
 Game.prototype._onId = function (id) {
   console.log('Got id', id)
   this._player.setId(id)
-  console.log(player)
+  this._transport.emit('avatar', {id: id, avatar: Game.getAvatar()})
 }
 
 Game.prototype._onJoin = function (data) {

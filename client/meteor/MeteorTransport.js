@@ -3,34 +3,41 @@ var EventEmitter = require('events').EventEmitter
 
 function MeteorTransport () {
   var self = this
-  self._playerId = Players.insert({})
-
-  function async (fn, context) {
-    return function () {
-      var args = arguments
-      setTimeout(function () {
-        fn.apply(context, args)
-      })
-    }
-  }
+  self._playerId = Players.insert({createdAt: Date.now()})
+  self._connId = Connections.insert({
+    playerId: self._playerId,
+    lastSeen: Date.now()
+  })
 
   Players.find().observe({
-    added: async(self._onAdded, self),
-    changed: async(self._onChanged, self),
-    removed: async(self._onRemoved, self)
+    added: self._onAdded.bind(self),
+    changed: self._onChanged.bind(self),
+    removed: self._onRemoved.bind(self)
   })
 
-  setTimeout(function () {
+  var emit = this.emit
+
+  this.emit = function () {
+    self._emit.apply(self, arguments)
+    emit.apply(self, arguments)
+  }
+
+  Meteor.setTimeout(function () {
     self.emit('id', self._playerId)
+    Meteor.subscribe('players')
   })
+
+  Meteor.setInterval(function () {
+    Connections.update(self._connId, {$set: {lastSeen: Date.now()}})
+  }, 1000)
 }
 inherits(MeteorTransport, EventEmitter)
 
-MeteorTransport.prototype.emit = function (name, data) {
+MeteorTransport.prototype._emit = function (name, data) {
   if (name == 'state') {
-    Players.update(this._playerId, {$set: {state: data}})
+    Players.update(data.id, {$set: {state: data.state}})
   } else if (name == 'avatar') {
-    Players.update(this._playerId, {$set: {avatar: data}})
+    Players.update(data.id, {$set: {avatar: data.avatar}})
   }
 }
 
@@ -38,13 +45,21 @@ MeteorTransport.prototype._onAdded = function (player) {
   if (player._id == this._playerId) return
 
   this.emit('join', {id: player._id})
+
+  if (player.state) {
+    this.emit('state', {id: player._id, state: player.state})
+  }
+
+  if (player.avatar) {
+    this.emit('avatar', {id: player._id, avatar: player.avatar})
+  }
 }
 
 MeteorTransport.prototype._onChanged = function (player, oldPlayer) {
   if (player._id == this._playerId) return
 
   if (player.avatar && !oldPlayer.avatar) {
-    this.emit('avatar', player.avatar)
+    this.emit('avatar', {id: player._id, avatar: player.avatar})
   } else {
     this.emit('state', {id: player._id, state: player.state})
   }
