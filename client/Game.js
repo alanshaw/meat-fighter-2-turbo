@@ -4,9 +4,11 @@ var Player = require('./Player')
 var random = require('./random')
 
 function Game (transport) {
-  this._transport = transport
+  var self = this
 
-  this._player = new Player({
+  self._transport = transport
+
+  self._player = new Player({
     avatar: localStorage.getItem('avatar') || Game.getAvatar(),
     local: true,
     state: {
@@ -14,29 +16,29 @@ function Game (transport) {
       y: random.int(50, 400)
     }
   })
-  this._players = {}
+  self._players = {}
 
   document.getElementById('gravatar').addEventListener('keyup', function () {
     var avatar = Game.getAvatar()
     localStorage.setItem('email', document.getElementById('gravatar').value)
     localStorage.setItem('avatar', avatar)
     transport.emit('avatar', avatar)
-    player.setAvatar(avatar)
+    self._player.setAvatar(avatar)
   })
 
   document.getElementById('gravatar').value = localStorage.getItem('email') || ''
 
-  this._world = document.getElementById('world')
+  self._world = document.getElementById('world')
 
-  this._player.spawn(this._world)
+  self._player.spawn(self._world)
 
-  requestAnimationFrame(this._loopy.bind(this))
+  requestAnimationFrame(self._loopy.bind(self))
 
-  transport.on('id', this._onId.bind(this))
-  transport.on('join', this._onJoin.bind(this))
-  transport.on('state', this._onState.bind(this))
-  transport.on('avatar', this._onAvatar.bind(this))
-  transport.on('leave', this._onLeave.bind(this))
+  transport.on('id', self._onId.bind(self))
+  transport.on('join', self._onJoin.bind(self))
+  transport.on('state', self._onState.bind(self))
+  transport.on('avatar', self._onAvatar.bind(self))
+  transport.on('leave', self._onLeave.bind(self))
 }
 
 Game.getAvatar = function () {
@@ -89,7 +91,7 @@ Game.prototype._loopy = function (timestamp) {
 Game.prototype._onId = function (id) {
   console.log('Got id', id)
   this._player.setId(id)
-  this._transport.emit('avatar', {id: id, avatar: Game.getAvatar()})
+  this._transport.emit('avatar', Game.getAvatar())
 }
 
 Game.prototype._onJoin = function (data) {

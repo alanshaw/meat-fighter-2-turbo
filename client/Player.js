@@ -40,8 +40,8 @@ function Player (opts) {
   this._pressed = {}
 
   if (opts.local) {
-    window.addEventListener("keydown", this._onKeydown.bind(this))
-    window.addEventListener("keyup", this._onKeyup.bind(this))
+    window.addEventListener('keydown', this._onKeydown.bind(this))
+    window.addEventListener('keyup', this._onKeyup.bind(this))
   }
 }
 

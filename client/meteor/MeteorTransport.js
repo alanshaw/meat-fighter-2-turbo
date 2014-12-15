@@ -57,7 +57,7 @@ MeteorTransport.prototype._onAdded = function (player) {
 MeteorTransport.prototype._onChanged = function (player, oldPlayer) {
   if (player._id == this._playerId) return
 
-  if (player.avatar && !oldPlayer.avatar) {
+  if (player.avatar != oldPlayer.avatar) {
     this._emit('avatar', {id: player._id, avatar: player.avatar})
   } else {
     this._emit('state', {id: player._id, state: player.state})
