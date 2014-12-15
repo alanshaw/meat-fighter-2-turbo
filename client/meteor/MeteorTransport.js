@@ -15,15 +15,8 @@ function MeteorTransport () {
     removed: self._onRemoved.bind(self)
   })
 
-  var emit = this.emit
-
-  this.emit = function () {
-    self._emit.apply(self, arguments)
-    emit.apply(self, arguments)
-  }
-
   Meteor.setTimeout(function () {
-    self.emit('id', self._playerId)
+    self._emit('id', self._playerId)
     Meteor.subscribe('players')
   })
 
@@ -33,25 +26,31 @@ function MeteorTransport () {
 }
 inherits(MeteorTransport, EventEmitter)
 
-MeteorTransport.prototype._emit = function (name, data) {
+MeteorTransport.prototype.emit = function (name, data) {
   if (name == 'state') {
-    Players.update(data.id, {$set: {state: data.state}})
+    Players.update(this._playerId, {$set: {state: data}})
   } else if (name == 'avatar') {
-    Players.update(data.id, {$set: {avatar: data.avatar}})
+    Players.update(this._playerId, {$set: {avatar: data}})
+  } else {
+    console.warn('Unhandled emit', name, data)
   }
+}
+
+MeteorTransport.prototype._emit = function (name, data) {
+  EventEmitter.prototype.emit.call(this, name, data)
 }
 
 MeteorTransport.prototype._onAdded = function (player) {
   if (player._id == this._playerId) return
 
-  this.emit('join', {id: player._id})
+  this._emit('join', {id: player._id})
 
   if (player.state) {
-    this.emit('state', {id: player._id, state: player.state})
+    this._emit('state', {id: player._id, state: player.state})
   }
 
   if (player.avatar) {
-    this.emit('avatar', {id: player._id, avatar: player.avatar})
+    this._emit('avatar', {id: player._id, avatar: player.avatar})
   }
 }
 
@@ -59,14 +58,14 @@ MeteorTransport.prototype._onChanged = function (player, oldPlayer) {
   if (player._id == this._playerId) return
 
   if (player.avatar && !oldPlayer.avatar) {
-    this.emit('avatar', {id: player._id, avatar: player.avatar})
+    this._emit('avatar', {id: player._id, avatar: player.avatar})
   } else {
-    this.emit('state', {id: player._id, state: player.state})
+    this._emit('state', {id: player._id, state: player.state})
   }
 }
 
 MeteorTransport.prototype._onRemoved = function (player) {
-  this.emit('leave', player._id)
+  this._emit('leave', player._id)
 }
 
 module.exports = MeteorTransport
