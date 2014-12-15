@@ -7,7 +7,8 @@ function Game (transport) {
 
   this._player = new Player({
     avatar: localStorage.getItem('avatar') || Game.getAvatar(),
-    local: true
+    local: true,
+    state: {x: Math.random() * 100, y: 200}
   })
   this._players = {}
 

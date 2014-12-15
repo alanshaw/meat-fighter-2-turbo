@@ -2,7 +2,7 @@ var xtend = require('xtend/mutable')
 
 function State (data) {
   this.x = 0
-  this.y = 50
+  this.y = 0
   this.vx = 0
   this.vy = 0
 
