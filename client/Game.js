@@ -13,7 +13,7 @@ function Game (transport) {
     local: true,
     state: {
       x: random.int(0, 640),
-      y: random.int(50, 400)
+      y: random.int(200, 400)
     }
   })
   self._players = {}
