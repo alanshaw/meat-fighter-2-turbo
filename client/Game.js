@@ -1,6 +1,7 @@
 var md5 = require('md5')
 var State = require('./State')
 var Player = require('./Player')
+var random = require('./random')
 
 function Game (transport) {
   this._transport = transport
@@ -8,7 +9,10 @@ function Game (transport) {
   this._player = new Player({
     avatar: localStorage.getItem('avatar') || Game.getAvatar(),
     local: true,
-    state: {x: Math.random() * 100, y: 200}
+    state: {
+      x: random.int(0, 640),
+      y: random.int(50, 400)
+    }
   })
   this._players = {}
 

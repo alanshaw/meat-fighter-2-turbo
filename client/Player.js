@@ -17,7 +17,7 @@ var KeyStateMutator = {
   },
   '38': function (state) {
     state = state.clone()
-    if (state.vy == 0) {
+    if (state.vy == 0 && state.y == 0) {
       state.vy = 1
     }
     return state
@@ -89,8 +89,8 @@ Player.prototype.update = function (elapsed, players) {
   }, this)
 
   var state = this._state
-  var wantedX = state.x + (state.vx * elapsed)
-  var wantedY = state.y + (state.vy * elapsed)
+  var wantedX = Math.round(state.x + (state.vx * elapsed))
+  var wantedY = Math.round(state.y + (state.vy * elapsed))
 
   // Can I be here?
   var canMoveX = true
@@ -121,9 +121,11 @@ Player.prototype.update = function (elapsed, players) {
       state.vx = 0
     } else {
       if (state.vx < 0) {
-        state.vx -= FRICTION * elapsed 
+        state.vx -= FRICTION * elapsed
+        state.vx = Math.round(state.vx * 100) / 100
       } else {
-        state.vx += FRICTION * elapsed 
+        state.vx += FRICTION * elapsed
+        state.vx = Math.round(state.vx * 100) / 100
       }
     }
   } else {
@@ -133,6 +135,7 @@ Player.prototype.update = function (elapsed, players) {
   if (canMoveY) {
     state.y = wantedY
     state.vy += GRAVITY * elapsed
+    state.vy = Math.round(state.vy * 100) / 100
   } else {
     state.vy = 0
   }
