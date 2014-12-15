@@ -32,6 +32,10 @@ There is a `MeteorTransport.js` which does the job of exposing Meteor's mongo co
 ### Build
 
 ```
+npm install
+```
+
+```
 npm run browserify
 # or
 npm run browserify-meteor
