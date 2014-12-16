@@ -50,7 +50,6 @@ function Player (opts) {
   this._state = new State(opts.state)
   this._lastState = null
   this._pressed = {}
-  this._hit = {}
 
   if (opts.local) {
     window.addEventListener('keydown', this._onKeydown.bind(this))
