@@ -25,6 +25,8 @@
   background: rgba(0, 0, 0, 0.2);
   transform: rotateX(180deg) translate(50px, 100px);
   z-index: 1;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
 }
 .player > div {
   width: 100%;
@@ -37,4 +39,40 @@
   background: transparent none no-repeat scroll center center;
   background-size: 100% 100%;
   border-radius: 50%;
+}
+.player.hitting {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: red;
+}
+.player .life {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 10px;
+  background: green;
+  transition: background-color 1s;
+}
+.player .life.warning {
+  background: yellow;
+}
+.player .life.danger {
+  background: red;
+}
+#ko {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: url(bg-ko.jpg) no-repeat scroll center center;
+  background-size: contain;
+  text-align: center;
+  padding: 1em 0;
+}
+#ko a, #ko a:visited {
+  font-family: Arial, sans-serif;
+  text-decoration: none;
+  font-size: 200%;
+  color: #911;
+}
+#ko a:hover {
+  color: red;
 }

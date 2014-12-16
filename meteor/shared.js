@@ -7,7 +7,11 @@ Players.allow({
     return true
   },
   update: function (uid, player) {
-    console.log('Update from', player._id, player.state)
+    //console.log('Update from', player._id, player.state)
+    return true
+  },
+  remove: function (uid, player) {
+    console.log('Player KO', player._id)
     return true
   }
 })
@@ -18,7 +22,7 @@ Connections.allow({
     return true
   },
   update: function (uid, conn) {
-    console.log('Ping from', conn._id)
+    //console.log('Ping from', conn._id)
     return true
   }
 })

@@ -79,6 +79,13 @@ Game.prototype._loopy = function (timestamp) {
     this._transport.emit('state', state)
   }
 
+  if (state.life <= 0) {
+    this._transport.emit('leave')
+    return setTimeout(function () {
+      location = '/ko.html'
+    }, 1000)
+  }
+
   this._listPlayers(this._player).forEach(function (p) {
     p.update(elapsed, this._listPlayers(p))
     p.redraw()

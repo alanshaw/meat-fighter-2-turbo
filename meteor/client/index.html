@@ -3,8 +3,18 @@
 </head>
 
 <body>
-  <label>
-    Gravatar: <input id="gravatar" type="email">
-  </label>
-  <div id="world"></div>
+  {{> main}}
 </body>
+
+<template name="main">
+  {{#if ko}}
+    <div id="ko">
+      <a href="/">RESPAWN!</a>
+    </div>
+  {{else}}
+    <label>
+      Gravatar: <input id="gravatar" type="email">
+    </label>
+    <div id="world"></div>
+  {{/if}}
+</template>

@@ -31,6 +31,8 @@ MeteorTransport.prototype.emit = function (name, data) {
     Players.update(this._playerId, {$set: {state: data}})
   } else if (name == 'avatar') {
     Players.update(this._playerId, {$set: {avatar: data}})
+  } else if (name == 'leave') {
+    Players.remove(this._playerId)
   } else {
     console.warn('Unhandled emit', name, data)
   }

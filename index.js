@@ -30,7 +30,7 @@ io.on('connection', function (socket) {
 
   // Send state to existing players
   socket.on('state', function (state) {
-    console.log('Got state', state)
+    //console.log('Got state', state)
     players[id].state = state
     socket.broadcast.emit('state', {id: id, state: state})
   })
@@ -42,11 +42,15 @@ io.on('connection', function (socket) {
     socket.broadcast.emit('avatar', {id: id, avatar: url})
   })
 
-  socket.on('disconnect', function () {
+  function leave () {
+    if (!players[id]) return
     console.log('Challenger disappears', id)
     delete players[id]
     socket.broadcast.emit('leave', id)
-  })
+  }
+
+  socket.on('leave', leave)
+  socket.on('disconnect', leave)
 })
 
 server.listen(port)

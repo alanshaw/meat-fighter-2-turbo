@@ -1,7 +1,15 @@
 var Game = require('../Game')
 var MeteorTransport = require('./MeteorTransport')
 
-Meteor.startup(function () {
-  var transport = new MeteorTransport 
-  var game = new Game(transport)
+Template.main.helpers({
+  ko: function () {
+    return window.location.pathname == '/ko.html'
+  }
 })
+
+Template.main.rendered = function () {
+  if (window.location.pathname == '/') {
+    var transport = new MeteorTransport 
+    var game = new Game(transport)
+  }
+}
