@@ -103,6 +103,7 @@ function inside (a, b) {
 }
 
 Player.prototype.update = function (elapsed, players) {
+  var player = this
   var lastState = this._lastState = this._state
   var state = this._state = this._state.clone()
 
@@ -121,16 +122,20 @@ Player.prototype.update = function (elapsed, players) {
       state.hitting = false
     }
 
+    // if (state.stunned && Date.now() - state.stunned > 500) {
+    //   state.stunned = false
+    // }
+
     players.forEach(function (p) {
       var pState = p.getState()
       if (inside(state, pState) && pState.hitting) {
-        state.life -= 1
+        player.takeDamage(p)
       }
     })
   }
 
   if (lastState.life != state.life) {
-    state.vx = 0
+    //state.vx = 0
   } else {
     state.x = Math.round(state.x + (state.vx * elapsed))
 
@@ -160,13 +165,25 @@ Player.prototype.update = function (elapsed, players) {
 
   if (state.x <= 0) {
     state.x = 0
-    state.vx = 0
+    if (state.vx < 0) state.vx = 0 - (state.vx / 2)
   }
 
   if (state.x >= 640 - WIDTH) {
     state.x = 640 - WIDTH
-    state.vx = 0
+    if (state.vx > 0) state.vx = 0 - (state.vx / 2)
   }
+}
+
+Player.prototype.takeDamage = function (attacker) {
+  var pState = this._state
+  var aState = attacker._state
+  var kickStepX = (pState.x - aState.x) / 100
+  var kickStepY = (pState.y - aState.y) / 300
+
+  pState.life -= 1
+  pState.vx += kickStepX
+  pState.vy += kickStepY
+  //pState.stunned = Date.now()
 }
 
 Player.prototype.redraw = function () {
