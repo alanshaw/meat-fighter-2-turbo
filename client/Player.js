@@ -103,16 +103,15 @@ function inside (a, b) {
 }
 
 Player.prototype.update = function (elapsed, players) {
-  var player = this
   var lastState = this._lastState = this._state
   var state = this._state = this._state.clone()
 
   if (this.opts.local) {
     Object.keys(this._pressed).forEach(function (keyCode) {
-      if (KeyPressedStateMutator[keyCode]) {
+      if (!state.stunned && KeyPressedStateMutator[keyCode]) {
         state = this._state = KeyPressedStateMutator[keyCode](state)
       }
-      if (KeyHitStateMutator[keyCode] && this._pressed[keyCode] == 1) {
+      if (!state.stunned && KeyHitStateMutator[keyCode] && this._pressed[keyCode] == 1) {
         state = this._state = KeyHitStateMutator[keyCode](state)
         this._pressed[keyCode]++
       }
@@ -122,35 +121,31 @@ Player.prototype.update = function (elapsed, players) {
       state.hitting = false
     }
 
-    // if (state.stunned && Date.now() - state.stunned > 500) {
-    //   state.stunned = false
-    // }
+    if (state.stunned && Date.now() - state.stunned > 500) {
+      state.stunned = false
+    }
 
     players.forEach(function (p) {
       var pState = p.getState()
       if (inside(state, pState) && pState.hitting) {
-        player.takeDamage(p)
+        this._takeDamage(p)
       }
-    })
+    }, this)
   }
 
-  if (lastState.life != state.life) {
-    //state.vx = 0
-  } else {
-    state.x = Math.round(state.x + (state.vx * elapsed))
+  state.x = Math.round(state.x + (state.vx * elapsed))
 
-    if (state.vx >= 0 && state.vx + (FRICTION * elapsed) < 0) {
-      state.vx = 0
-    } else if (state.vx < 0 && state.vx + (FRICTION * elapsed) >= 0) {
-      state.vx = 0
+  if (state.vx >= 0 && state.vx + (FRICTION * elapsed) < 0) {
+    state.vx = 0
+  } else if (state.vx < 0 && state.vx + (FRICTION * elapsed) >= 0) {
+    state.vx = 0
+  } else {
+    if (state.vx < 0) {
+      state.vx -= FRICTION * elapsed
+      state.vx = Math.round(state.vx * 100) / 100
     } else {
-      if (state.vx < 0) {
-        state.vx -= FRICTION * elapsed
-        state.vx = Math.round(state.vx * 100) / 100
-      } else {
-        state.vx += FRICTION * elapsed
-        state.vx = Math.round(state.vx * 100) / 100
-      }
+      state.vx += FRICTION * elapsed
+      state.vx = Math.round(state.vx * 100) / 100
     }
   }
 
@@ -174,16 +169,16 @@ Player.prototype.update = function (elapsed, players) {
   }
 }
 
-Player.prototype.takeDamage = function (attacker) {
-  var pState = this._state
-  var aState = attacker._state
-  var kickStepX = (pState.x - aState.x) / 100
-  var kickStepY = (pState.y - aState.y) / 300
+Player.prototype._takeDamage = function (attacker) {
+  var state = this._state
+  var aState = attacker.getState()
+  var kickStepX = (state.x - aState.x) / 100
+  var kickStepY = (state.y - aState.y) / 100
 
-  pState.life -= 1
-  pState.vx += kickStepX
-  pState.vy += kickStepY
-  //pState.stunned = Date.now()
+  state.life -= 1
+  state.vx += kickStepX
+  state.vy += kickStepY
+  state.stunned = Date.now()
 }
 
 Player.prototype.redraw = function () {
@@ -193,6 +188,12 @@ Player.prototype.redraw = function () {
     classes(this._frame).add('hitting')
   } else {
     classes(this._frame).remove('hitting')
+  }
+
+  if (state.stunned) {
+    classes(this._frame).add('stunned')
+  } else {
+    classes(this._frame).remove('stunned')
   }
 
   this._life.style.width = state.life + '%'

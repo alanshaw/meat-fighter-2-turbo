@@ -44,6 +44,24 @@
   background: rgba(255, 0, 0, 0.2);
   border-color: red;
 }
+.player.stunned::before {
+  content: '*';
+  font-size: 24px;
+  color: #fff;
+  position: absolute;
+  bottom: -10px;
+  left: -10px;
+  z-index: 1;
+}
+.player.stunned::after {
+  content: '*';
+  font-size: 24px;
+  color: #fff;
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  z-index: 1;
+}
 .player .life {
   position: absolute;
   bottom: 0;

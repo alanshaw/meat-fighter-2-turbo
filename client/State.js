@@ -7,6 +7,7 @@ function State (data) {
   this.vy = 0
   this.hitting = false
   this.life = 100
+  this.stunned = false
 
   if (data) xtend(this, data)
 }
@@ -21,7 +22,8 @@ State.prototype.equals = function (state) {
          this.vx == state.vx &&
          this.vy == state.vy &&
          this.hitting == state.hitting &&
-         this.life == state.life
+         this.life == state.life &&
+         this.stunned == state.stunned
 }
 
 module.exports = State
